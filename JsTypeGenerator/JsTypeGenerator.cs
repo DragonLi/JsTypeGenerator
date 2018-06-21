@@ -44,7 +44,7 @@ namespace JsTypeGenerator
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.Error.WriteLine(e);
                 return -1;
             }
         }
@@ -66,21 +66,28 @@ namespace JsTypeGenerator
                 if (File.Exists(file))
                 {
                     string code = File.ReadAllText(file);
-                    var syntaxTree = parser.Parse(code, file);
-                    var unresolvedFile = syntaxTree.ToTypeSystem();
-                    if (unresolvedFile.TopLevelTypeDefinitions == null ||
-                        unresolvedFile.TopLevelTypeDefinitions.Count == 0)
+                    try
                     {
-                        Console.WriteLine("Warning:<{0}> has nothing type definition", file);
+                        var syntaxTree = parser.Parse(code, file);
+                        var unresolvedFile = syntaxTree.ToTypeSystem();
+                        if (unresolvedFile.TopLevelTypeDefinitions == null ||
+                            unresolvedFile.TopLevelTypeDefinitions.Count == 0)
+                        {
+                            Console.Error.WriteLine("Warning:<{0}> has nothing type definition", file);
+                        }
+                        else
+                        {
+                            RecursiveParseTypeDefinition(unresolvedFile.TopLevelTypeDefinitions);
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        RecursiveParseTypeDefinition(unresolvedFile.TopLevelTypeDefinitions);
+                        Console.Error.WriteLine("Error:<{0}> parsed exception:{1}", file, e);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Error:<{0}> is not found", file);
+                    Console.Error.WriteLine("Error:<{0}> is not found", file);
                 }
             }
         }
